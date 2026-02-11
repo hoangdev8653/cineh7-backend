@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/cineh7-gateway/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/cineh7-gateway/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/cineh7-gateway",
+  "projects": {
+    "cineh7-gateway": {
+      "type": "application",
+      "root": "apps/cineh7-gateway",
+      "entryFile": "main",
+      "sourceRoot": "apps/cineh7-gateway/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/cineh7-gateway/tsconfig.app.json"
+      }
+    },
+    "cineh7-auth-service": {
+      "type": "application",
+      "root": "apps/cineh7-auth-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/cineh7-auth-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/cineh7-auth-service/tsconfig.app.json"
+      }
+    }
+  }
+}
