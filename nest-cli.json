@@ -9,7 +9,17 @@
   },
   "monorepo": true,
   "root": "apps/cineh7-gateway",
+  "packageManager": "pnpm",
   "projects": {
+    "cineh7-auth-service": {
+      "type": "application",
+      "root": "apps/cineh7-auth-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/cineh7-auth-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/cineh7-auth-service/tsconfig.app.json"
+      }
+    },
     "cineh7-gateway": {
       "type": "application",
       "root": "apps/cineh7-gateway",
@@ -19,13 +29,13 @@
         "tsConfigPath": "apps/cineh7-gateway/tsconfig.app.json"
       }
     },
-    "cineh7-auth-service": {
+    "cineh7-movie-theater-service": {
       "type": "application",
-      "root": "apps/cineh7-auth-service",
+      "root": "apps/cineh7-movie-theater-service",
       "entryFile": "main",
-      "sourceRoot": "apps/cineh7-auth-service/src",
+      "sourceRoot": "apps/cineh7-movie-theater-service/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/cineh7-auth-service/tsconfig.app.json"
+        "tsConfigPath": "apps/cineh7-movie-theater-service/tsconfig.app.json"
       }
     }
   }
