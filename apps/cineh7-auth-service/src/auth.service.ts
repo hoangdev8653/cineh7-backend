@@ -1,10 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { LoginDto, RegisterDto, PaginationDto, ChangePasswordDto, ForgotPasswordDto, LogoutDto, ProfileDto, ResetPasswordDto } from './auth.dto';
-import { User } from "./auth.entities"
+import { LoginDto, RegisterDto, PaginationDto, ChangePasswordDto, ForgotPasswordDto, LogoutDto, ResetPasswordDto } from './auth.dto';
+import { User, UserRole } from "./auth.entities"
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from "bcrypt"
+import { MailService } from './configs/mail.config';
+import { generateToken } from './configs/generateToken.config';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +14,7 @@ export class AuthService {
     @InjectRepository(User)
     private authRepository: Repository<User>,
     private jwtService: JwtService,
+    private mailService: MailService
   ) { }
 
   async login(loginDto: LoginDto) {
@@ -24,10 +27,7 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-
-    const payload = { email: user.email, sub: user.id };
-    const access_token = this.jwtService.sign(payload);
-    const refresh_token = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const { access_token, refresh_token } = generateToken(this.jwtService, { email: user.email, sub: user.id });
     await this.authRepository.update(user.id, { refresh_token });
 
     return {
@@ -71,32 +71,29 @@ export class AuthService {
     return { message: 'Logged out successfully' };
   }
 
-  async refreshToken(refresh_token: string) {
+  async refreshToken(token: string) {
     try {
-      const payload = this.jwtService.verify(refresh_token);
+      const payload = this.jwtService.verify(token);
       const user = await this.authRepository.findOne({ where: { id: payload.sub } });
 
-      if (!user || user.refresh_token !== refresh_token) {
+      if (!user || user.refresh_token !== token) {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      const newPayload = { email: user.email, sub: user.id };
-      const access_token = this.jwtService.sign(newPayload);
-      const new_refresh_token = this.jwtService.sign(newPayload, { expiresIn: '7d' });
-
-      await this.authRepository.update(user.id, { refresh_token: new_refresh_token });
+      const { access_token, refresh_token } = generateToken(this.jwtService, { email: user.email, sub: user.id });
+      await this.authRepository.update(user.id, { refresh_token });
 
       return {
         access_token,
-        refresh_token: new_refresh_token,
+        refresh_token,
       };
     } catch (e) {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
 
-  async profile(profileDto: ProfileDto) {
-    const user = await this.authRepository.findOne({ where: { id: profileDto.id } });
+  async profile(id: string) {
+    const user = await this.authRepository.findOne({ where: { id } });
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
@@ -126,7 +123,8 @@ export class AuthService {
         full_name: user.full_name,
         role: user.role,
         avatar: user.avatar,
-        is_active: user.is_active
+        is_active: user.is_active,
+        auth_method: user.auth_method
       })),
       total,
       page,
@@ -148,5 +146,79 @@ export class AuthService {
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
     // Implement logic
     return { message: "Password reset" }
+  }
+  async googleLogin(profile: any) {
+    const email = profile.emails[0].value;
+    const full_name = profile.displayName;
+    const avatar = profile.photos[0].value;
+
+    let user = await this.authRepository.findOne({ where: { email } });
+    console.log(user);
+    if (!user) {
+      user = this.authRepository.create({
+        email,
+        full_name,
+        avatar,
+        auth_method: 'EMAIL',
+        password: '',
+      });
+      await this.authRepository.save(user);
+    } else {
+      this.mailService.sendMail(user.email, 'Google Login', 'You have successfully logged in using Google');
+      if (avatar) {
+        await this.authRepository.update(user.id, { avatar });
+      }
+    }
+
+    const { access_token, refresh_token } = generateToken(this.jwtService, { email: user.email, sub: user.id });
+    await this.authRepository.update(user.id, { refresh_token });
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        role: user.role,
+        avatar: user.avatar
+      },
+      access_token,
+      refresh_token,
+    };
+  }
+
+  async updateRole(id: string, role: UserRole) {
+    const user = await this.authRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    const updatedUser = await this.authRepository.update(id, { role });
+    return updatedUser;
+  }
+
+  async lockUser(id: string) {
+    const user = await this.authRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    const updatedUser = await this.authRepository.update(id, { is_active: false });
+    return updatedUser;
+  }
+
+  async unlockUser(id: string) {
+    const user = await this.authRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    const updatedUser = await this.authRepository.update(id, { is_active: true });
+    return updatedUser;
+  }
+
+  async deleteUser(id: string) {
+    const user = await this.authRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    const deletedUser = await this.authRepository.delete(id);
+    return deletedUser;
   }
 }

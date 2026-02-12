@@ -35,6 +35,13 @@ export class User {
     @Column({ name: 'refresh_token', nullable: true, type: 'varchar' })
     refresh_token: string | null;
 
+    @Column({
+        type: 'enum',
+        enum: ['LOCAL', 'FACEBOOK', 'EMAIL'],
+        default: 'LOCAL',
+    })
+    auth_method: string;
+
     @CreateDateColumn({ name: 'created_at' })
     created_at: Date;
 

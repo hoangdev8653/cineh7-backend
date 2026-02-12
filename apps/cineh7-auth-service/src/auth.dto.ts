@@ -6,8 +6,10 @@ import {
     IsString,
     Min,
     MinLength,
+    IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { UserRole } from './auth.entities';
 
 export class LoginDto {
     @IsEmail()
@@ -49,11 +51,6 @@ export class PaginationDto {
     limit?: number = 10;
 }
 
-export class ProfileDto {
-    @IsNotEmpty()
-    @IsString()
-    id: string;
-}
 
 export class LogoutDto {
     @IsNotEmpty()
@@ -89,4 +86,14 @@ export class ChangePasswordDto {
     @IsString()
     @MinLength(6)
     new_password: string;
+}
+
+export class UpdateRoleDto {
+    @IsNotEmpty()
+    @IsString()
+    id: string;
+
+    @IsNotEmpty()
+    @IsEnum(UserRole)
+    role: UserRole;
 }
