@@ -21,6 +21,13 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
-    "paths": {}
+    "paths": {
+      "@libs/cloudinary": [
+        "libs/cloudinary/src"
+      ],
+      "@libs/cloudinary/*": [
+        "libs/cloudinary/src/*"
+      ]
+    }
   }
 }
