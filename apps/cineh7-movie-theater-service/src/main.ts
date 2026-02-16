@@ -1,8 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { Cineh7MovieTheaterServiceModule } from './cineh7-movie-theater-service.module';
+import { ValidationPipe } from '@nestjs/common';
+import { MovieTheaterServiceModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(Cineh7MovieTheaterServiceModule);
-  await app.listen(process.env.port ?? 3000);
+  const app = await NestFactory.create(MovieTheaterServiceModule);
+  app.useGlobalPipes(new ValidationPipe({ transform: true, transformOptions: { enableImplicitConversion: true } }));
+  await app.listen(process.env.MOVIE_THEATER_SERVICE_PORT ?? 3002);
+  console.log(`Movie Theater Service is running on: http://localhost:${process.env.MOVIE_THEATER_SERVICE_PORT ?? 3002}`);
 }
 bootstrap();

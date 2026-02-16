@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { Cineh7MovieTheaterServiceModule } from './../src/cineh7-movie-theater-service.module';
+import { Cineh7MovieTheaterServiceModule } from '../src/app.module';
 
 describe('Cineh7MovieTheaterServiceController (e2e)', () => {
   let app: INestApplication;
