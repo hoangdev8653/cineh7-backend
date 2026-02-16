@@ -20,6 +20,15 @@
         "tsConfigPath": "apps/cineh7-auth-service/tsconfig.app.json"
       }
     },
+    "cineh7-booking-service": {
+      "type": "application",
+      "root": "apps/cineh7-booking-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/cineh7-booking-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/cineh7-booking-service/tsconfig.app.json"
+      }
+    },
     "cineh7-gateway": {
       "type": "application",
       "root": "apps/cineh7-gateway",
