@@ -1,12 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { LoginDto, RegisterDto, PaginationDto, ChangePasswordDto, ForgotPasswordDto, LogoutDto, ResetPasswordDto } from './auth.dto';
-import { User, UserRole } from "./auth.entities"
+import { User } from "./auth.entities"
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from "bcrypt"
 import { MailService } from './configs/mail.config';
 import { generateToken } from './configs/generateToken.config';
+import { LoginDto, RegisterDto, ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto, LogoutDto, PaginationDto, UserRole } from '@libs/common';
+
+
 
 @Injectable()
 export class AuthService {

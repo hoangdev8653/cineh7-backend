@@ -1,13 +1,22 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './auth.module';
-import cookieParser from 'cookie-parser';
-
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { GlobalRpcExceptionFilter } from '@libs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.use(cookieParser());
-
-  await app.listen(process.env.AUTH_SERVICE_PORT ?? 3001);
-  console.log(`Auth service is running on: http://localhost:${process.env.AUTH_SERVICE_PORT ?? 3001}`);
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.TCP,
+      options: {
+        host: '0.0.0.0',
+        port: parseInt(process.env.AUTH_SERVICE_PORT || '3001'),
+      },
+    },
+  );
+  app.useGlobalFilters(new GlobalRpcExceptionFilter());
+  await app.listen();
+  console.log(`Auth service is running on port: ${process.env.AUTH_SERVICE_PORT || 3001}`);
 }
 bootstrap();
+
