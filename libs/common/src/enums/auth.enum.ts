@@ -1,0 +1,15 @@
+export enum AUTH_CMD {
+    LOGIN = 'login',
+    REGISTER = 'register',
+    LOGOUT = 'logout',
+    REFRESH_TOKEN = 'refresh_token',
+    PROFILE = 'profile',
+    FORGOT_PASSWORD = 'forgot_password',
+    RESET_PASSWORD = 'reset_password',
+    CHANGE_PASSWORD = 'change_password',
+    GET_ALL_USERS = 'get_all_users',
+    UPDATE_ROLE = 'update_role',
+    LOCK_USER = 'lock_user',
+    UNLOCK_USER = 'unlock_user',
+    DELETE_USER = 'delete_user',
+}
