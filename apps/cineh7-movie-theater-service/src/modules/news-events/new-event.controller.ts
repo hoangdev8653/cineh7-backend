@@ -1,12 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { NewsEventsService } from './new-event.service';
-import { CreateNewsEventDto, UpdateNewsEventDto } from './new-event.dto';
+import { CreateNewsEventDto, UpdateNewsEventDto, NEWS_EVENT_CMD } from "@libs/common";
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
-@Controller('new-event')
+@Controller()
 export class NewsEventsController {
     constructor(private readonly newsEventsService: NewsEventsService) { }
 
-    @Get()
+    @MessagePattern({ cmd: NEWS_EVENT_CMD.GET_ALL })
     async getAllNewsEvents() {
         const newEvents = await this.newsEventsService.getAllNewsEvents();
         return {
@@ -15,8 +16,8 @@ export class NewsEventsController {
         }
     }
 
-    @Get(':id')
-    async getNewEventById(@Param('id') id: string) {
+    @MessagePattern({ cmd: NEWS_EVENT_CMD.GET_BY_ID })
+    async getNewEventById(@Payload() id: string) {
         const newEvent = await this.newsEventsService.getNewEventById(id);
         return {
             message: 'success',
@@ -24,9 +25,8 @@ export class NewsEventsController {
         }
     }
 
-    @Post()
-    @UsePipes(ValidationPipe)
-    async createNewEvent(@Body() createNewsEventDto: CreateNewsEventDto) {
+    @MessagePattern({ cmd: NEWS_EVENT_CMD.CREATE })
+    async createNewEvent(@Payload() createNewsEventDto: CreateNewsEventDto) {
         const newEvent = await this.newsEventsService.createNewEvent(createNewsEventDto);
         return {
             message: 'success',
@@ -34,19 +34,17 @@ export class NewsEventsController {
         }
     }
 
-    @Patch(':id')
-    @UsePipes(ValidationPipe)
-    async updateNewEvent(@Param('id') id: string, @Body() updateNewsEventDto: UpdateNewsEventDto) {
-        const newEvent = await this.newsEventsService.updateNewEvent(id, updateNewsEventDto);
+    @MessagePattern({ cmd: NEWS_EVENT_CMD.UPDATE })
+    async updateNewEvent(@Payload() data: { id: string, updateNewsEventDto: UpdateNewsEventDto }) {
+        const newEvent = await this.newsEventsService.updateNewEvent(data.id, data.updateNewsEventDto);
         return {
             message: 'success',
             data: newEvent
         }
     }
 
-
-    @Delete(':id')
-    async deleteNewevent(@Param('id') id: string) {
+    @MessagePattern({ cmd: NEWS_EVENT_CMD.DELETE })
+    async deleteNewevent(@Payload() id: string) {
         const newEvent = await this.newsEventsService.deleteNewevent(id);
         return {
             message: 'success',

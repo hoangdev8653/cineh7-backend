@@ -1,14 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { TheaterSystemService } from './theater-system.service';
-import { CreateTheaterSystemDto, UpdateTheaterSystemDto } from "./theater-system.dto"
-import { FileInterceptor } from '@nestjs/platform-express';
-import { AuthGuard } from '@nestjs/passport';
+import { CreateTheaterSystemDto, UpdateTheaterSystemDto, THEATER_SYSTEM_CMD } from "@libs/common";
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
-@Controller('theater-system')
+@Controller()
 export class TheaterSystemController {
     constructor(private readonly theaterSystemService: TheaterSystemService) { }
 
-    @Get()
+    @MessagePattern({ cmd: THEATER_SYSTEM_CMD.GET_ALL })
     async getAllTheaterSystems() {
         const theaterSystems = await this.theaterSystemService.getAllTheaterSystems();
         return {
@@ -16,19 +15,18 @@ export class TheaterSystemController {
             theaterSystems
         }
     }
-    @Post()
-    // @UseGuards(AuthGuard('jwt'))
-    @UseInterceptors(FileInterceptor('logo'))
-    async createTheaterSystem(@Body() createTheaterSystemDto: CreateTheaterSystemDto, @UploadedFile() file: Express.Multer.File) {
-        const data = await this.theaterSystemService.createTheaterSystem(createTheaterSystemDto, file);
+
+    @MessagePattern({ cmd: THEATER_SYSTEM_CMD.CREATE })
+    async createTheaterSystem(@Payload() data: { createTheaterSystemDto: CreateTheaterSystemDto, file: Express.Multer.File }) {
+        const result = await this.theaterSystemService.createTheaterSystem(data.createTheaterSystemDto, data.file);
         return {
             message: "Tạo hệ thống rạp thành công",
-            data
+            data: result
         }
     }
 
-    @Get(':id')
-    async getTheaterSystemById(@Param('id') id: string) {
+    @MessagePattern({ cmd: THEATER_SYSTEM_CMD.GET_BY_ID })
+    async getTheaterSystemById(@Payload() id: string) {
         const theaterSystem = await this.theaterSystemService.getTheaterSystemById(id);
         return {
             message: "Lấy thông tin hệ thống rạp thành công",
@@ -36,17 +34,17 @@ export class TheaterSystemController {
         }
     }
 
-    @Put(':id')
-    async updateTheaterSystem(@Param('id') id: string, @Body() updateTheaterSystemDto: UpdateTheaterSystemDto) {
-        const theaterSystem = await this.theaterSystemService.updateTheaterSystem(id, updateTheaterSystemDto);
+    @MessagePattern({ cmd: THEATER_SYSTEM_CMD.UPDATE })
+    async updateTheaterSystem(@Payload() data: { id: string, updateTheaterSystemDto: UpdateTheaterSystemDto }) {
+        const theaterSystem = await this.theaterSystemService.updateTheaterSystem(data.id, data.updateTheaterSystemDto);
         return {
             message: "Cập nhật hệ thống rạp thành công",
             theaterSystem
         }
     }
 
-    @Delete(':id')
-    async deleteTheaterSystem(@Param('id') id: string) {
+    @MessagePattern({ cmd: THEATER_SYSTEM_CMD.DELETE })
+    async deleteTheaterSystem(@Payload() id: string) {
         const theaterSystemDeleted = await this.theaterSystemService.deleteTheaterSystem(id);
         return {
             message: "Xóa hệ thống rạp thành công",

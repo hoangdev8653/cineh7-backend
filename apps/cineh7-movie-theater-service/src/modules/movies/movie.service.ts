@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Movie } from './movie.entities';
-import { CreateMovieDto, UpdateMovieDto } from './movie.dto';
+import { CreateMovieDto, UpdateMovieDto } from '@libs/common';
 import { CloudinaryService } from "@libs/cloudinary/cloudinary.service";
 
 

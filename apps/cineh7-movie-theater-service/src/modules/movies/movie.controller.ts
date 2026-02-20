@@ -1,23 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, UploadedFile, UseInterceptors, Put } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { MovieService } from './movie.service';
-import { CreateMovieDto, UpdateMovieDto } from './movie.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { CreateMovieDto, UpdateMovieDto, MOVIE_CMD } from '@libs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
-@Controller('movie')
+@Controller()
 export class MovieController {
     constructor(private readonly movieService: MovieService) { }
 
-    @Post()
-    @UseInterceptors(FileInterceptor('video_url'))
-    async createMovie(@Body() createMovieDto: CreateMovieDto, @UploadedFile() file: Express.Multer.File) {
-        const movie = await this.movieService.createMovie(createMovieDto, file);
+    @MessagePattern({ cmd: MOVIE_CMD.CREATE })
+    async createMovie(@Payload() data: { createMovieDto: CreateMovieDto, file: Express.Multer.File }) {
+        const movie = await this.movieService.createMovie(data.createMovieDto, data.file);
         return {
             message: 'Tạo phim mới thành công',
             movie,
         }
     }
 
-    @Get()
+    @MessagePattern({ cmd: MOVIE_CMD.GET_ALL })
     async getAllMovies() {
         const movies = await this.movieService.getAllMovies();
         return {
@@ -26,8 +25,8 @@ export class MovieController {
         }
     }
 
-    @Get(':id')
-    async getMovieById(@Param('id', ParseUUIDPipe) id: string) {
+    @MessagePattern({ cmd: MOVIE_CMD.GET_BY_ID })
+    async getMovieById(@Payload() id: string) {
         const movie = await this.movieService.getMovieById(id);
         return {
             message: 'Lấy thông tin phim thành công',
@@ -35,17 +34,17 @@ export class MovieController {
         }
     }
 
-    @Put(':id')
-    async updateMovieById(@Param('id', ParseUUIDPipe) id: string, @Body() updateMovieDto: UpdateMovieDto) {
-        const movie = await this.movieService.updateMovieById(id, updateMovieDto);
+    @MessagePattern({ cmd: MOVIE_CMD.UPDATE })
+    async updateMovieById(@Payload() data: { id: string, updateMovieDto: UpdateMovieDto }) {
+        const movie = await this.movieService.updateMovieById(data.id, data.updateMovieDto);
         return {
             message: 'Cập nhật thông tin phim thành công',
             movie,
         }
     }
 
-    @Delete(':id')
-    async deleteMovieById(@Param('id', ParseUUIDPipe) id: string) {
+    @MessagePattern({ cmd: MOVIE_CMD.DELETE })
+    async deleteMovieById(@Payload() id: string) {
         const movieDeleted = await this.movieService.deleteMovieById(id);
         return {
             message: 'Xóa phim thành công',

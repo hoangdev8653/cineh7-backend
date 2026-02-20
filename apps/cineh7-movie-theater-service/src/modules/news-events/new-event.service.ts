@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NewsEvent, NewsEventType } from './new-event.entities';
-import { CreateNewsEventDto, FilterNewsEventDto, UpdateNewsEventDto } from './new-event.dto';
+import { CreateNewsEventDto, UpdateNewsEventDto } from "@libs/common";
 
 @Injectable()
 export class NewsEventsService {

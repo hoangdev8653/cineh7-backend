@@ -1,13 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { TheaterService } from './theater.service';
-import { CreateTheaterDto, UpdateTheaterDto } from './theater.dto';
+import { CreateTheaterDto, UpdateTheaterDto, THEATER_CMD } from "@libs/common";
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
-@Controller('theater')
+@Controller()
 export class TheaterController {
     constructor(private readonly theaterService: TheaterService) { }
 
-    @Post()
-    async createTheater(@Body() createTheaterDto: CreateTheaterDto) {
+    @MessagePattern({ cmd: THEATER_CMD.CREATE })
+    async createTheater(@Payload() createTheaterDto: CreateTheaterDto) {
         const theater = await this.theaterService.createTheater(createTheaterDto);
         return {
             message: 'Tạo rạp chiếu phim thành công',
@@ -15,7 +16,7 @@ export class TheaterController {
         }
     }
 
-    @Get()
+    @MessagePattern({ cmd: THEATER_CMD.GET_ALL })
     async getAllTheaters() {
         const theaters = await this.theaterService.getAllTheaters();
         return {
@@ -24,8 +25,8 @@ export class TheaterController {
         }
     }
 
-    @Get(':id')
-    async getTheaterById(@Param('id') id: string) {
+    @MessagePattern({ cmd: THEATER_CMD.GET_BY_ID })
+    async getTheaterById(@Payload() id: string) {
         const theater = await this.theaterService.getTheaterById(id);
         return {
             message: 'Lấy thông tin rạp chiếu phim thành công',
@@ -33,17 +34,17 @@ export class TheaterController {
         }
     }
 
-    @Put(':id')
-    async updateTheaterById(@Param('id') id: string, @Body() updateTheaterDto: UpdateTheaterDto) {
-        const theater = await this.theaterService.updateTheaterById(id, updateTheaterDto);
+    @MessagePattern({ cmd: THEATER_CMD.UPDATE })
+    async updateTheaterById(@Payload() data: { id: string, updateTheaterDto: UpdateTheaterDto }) {
+        const theater = await this.theaterService.updateTheaterById(data.id, data.updateTheaterDto);
         return {
             message: 'Cập nhật thông tin rạp chiếu phim thành công',
             theater,
         }
     }
 
-    @Delete(':id')
-    async deleteTheaterById(@Param('id') id: string) {
+    @MessagePattern({ cmd: THEATER_CMD.DELETE })
+    async deleteTheaterById(@Payload() id: string) {
         const theaterDeleted = await this.theaterService.deleteTheaterById(id);
         return {
             message: 'Xóa rạp chiếu phim thành công',

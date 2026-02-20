@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Theater } from './theater.entities';
-import { CreateTheaterDto, UpdateTheaterDto } from './theater.dto';
+import { CreateTheaterDto, UpdateTheaterDto } from "@libs/common";
 
 @Injectable()
 export class TheaterService {

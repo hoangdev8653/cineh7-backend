@@ -1,13 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { ShowtimeService } from './showtime.service';
-import { CreateShowtimeDto, UpdateShowtimeDto, CreateBulkShowtimeDto } from './showtime.dto';
+import { CreateShowtimeDto, UpdateShowtimeDto, CreateBulkShowtimeDto, SHOWTIME_CMD } from "@libs/common";
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
-@Controller('showtime')
+@Controller()
 export class ShowtimeController {
     constructor(private readonly showtimeService: ShowtimeService) { }
 
-    @Post()
-    async createShowtime(@Body() createShowtimeDto: CreateShowtimeDto) {
+    @MessagePattern({ cmd: SHOWTIME_CMD.CREATE })
+    async createShowtime(@Payload() createShowtimeDto: CreateShowtimeDto) {
         const showtime = await this.showtimeService.createShowtime(createShowtimeDto);
         return {
             message: 'Tạo lịch chiếu thành công',
@@ -15,8 +16,8 @@ export class ShowtimeController {
         }
     }
 
-    @Post('bulk')
-    async createBulkShowtimes(@Body() createBulkDto: CreateBulkShowtimeDto) {
+    @MessagePattern({ cmd: 'create_bulk_showtimes' })
+    async createBulkShowtimes(@Payload() createBulkDto: CreateBulkShowtimeDto) {
         const result = await this.showtimeService.createBulkShowtimes(createBulkDto);
         return {
             message: 'Tạo lịch chiếu hàng loạt hoàn tất',
@@ -24,7 +25,7 @@ export class ShowtimeController {
         }
     }
 
-    @Get()
+    @MessagePattern({ cmd: SHOWTIME_CMD.GET_ALL })
     async getAllShowtimes() {
         const data = await this.showtimeService.getAllShowtimes();
         return {
@@ -33,8 +34,8 @@ export class ShowtimeController {
         }
     }
 
-    @Get(':id')
-    async getShowtimeById(@Param('id', ParseUUIDPipe) id: string) {
+    @MessagePattern({ cmd: SHOWTIME_CMD.GET_BY_ID })
+    async getShowtimeById(@Payload() id: string) {
         const data = await this.showtimeService.getShowtimeById(id);
         return {
             message: 'Lấy thông tin lịch chiếu thành công',
@@ -42,17 +43,17 @@ export class ShowtimeController {
         }
     }
 
-    @Patch(':id')
-    async updateShowtimeById(@Param('id', ParseUUIDPipe) id: string, @Body() updateShowtimeDto: UpdateShowtimeDto) {
-        const showtime = await this.showtimeService.updateShowtimeById(id, updateShowtimeDto);
+    @MessagePattern({ cmd: SHOWTIME_CMD.UPDATE })
+    async updateShowtimeById(@Payload() data: { id: string, updateShowtimeDto: UpdateShowtimeDto }) {
+        const showtime = await this.showtimeService.updateShowtimeById(data.id, data.updateShowtimeDto);
         return {
             message: 'Cập nhật lịch chiếu thành công',
             showtime,
         }
     }
 
-    @Delete(':id')
-    async deleteShowtimeById(@Param('id', ParseUUIDPipe) id: string) {
+    @MessagePattern({ cmd: SHOWTIME_CMD.DELETE })
+    async deleteShowtimeById(@Payload() id: string) {
         const showtimeDeleted = await this.showtimeService.deleteShowtimeById(id);
         return {
             message: 'Xóa lịch chiếu thành công',

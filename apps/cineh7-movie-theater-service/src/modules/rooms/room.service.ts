@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Room } from './room.entities';
-import { CreateRoomDto, UpdateRoomDto } from './rome.dto';
+import { CreateRoomDto, UpdateRoomDto } from "@libs/common";
 
 @Injectable()
 export class RoomService {

@@ -1,13 +1,14 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, Patch, Query } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { SeatService } from './seat.service';
-import { CreateSeatDto, UpdateSeatDto, } from './seat.dto';
+import { CreateSeatDto, UpdateSeatDto, SEAT_CMD } from "@libs/common";
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
-@Controller('seat')
+@Controller()
 export class SeatController {
     constructor(private readonly seatService: SeatService) { }
 
-    @Post()
-    async createSeatsMap(@Body() createSeatDto: CreateSeatDto) {
+    @MessagePattern({ cmd: SEAT_CMD.CREATE })
+    async createSeatsMap(@Payload() createSeatDto: CreateSeatDto) {
         const seat = await this.seatService.createSeatsMap(createSeatDto);
         return {
             message: 'Tạo ghế thành công',
@@ -15,8 +16,8 @@ export class SeatController {
         };
     }
 
-    @Put('bulk/update-row')
-    async updateSeatsTypeByRow(@Body() body: { room_id: string, row: string, type: string }) {
+    @MessagePattern({ cmd: 'bulk_update_row' })
+    async updateSeatsTypeByRow(@Payload() body: { room_id: string, row: string, type: string }) {
         const data = await this.seatService.updateSeatsTypeByRow(body.room_id, body.row, body.type);
         return {
             message: `Đã cập nhật hàng ghế ${body.row} thành loại ${body.type} thành công`,
@@ -24,7 +25,7 @@ export class SeatController {
         };
     }
 
-    @Get()
+    @MessagePattern({ cmd: SEAT_CMD.GET_ALL })
     async getAllSeats() {
         const seats = await this.seatService.getAllSeats();
         return {
@@ -33,8 +34,8 @@ export class SeatController {
         };
     }
 
-    @Get('room/:room_id')
-    async getSeatsByRoomId(@Param('room_id') room_id: string) {
+    @MessagePattern({ cmd: 'get_seats_by_room' })
+    async getSeatsByRoomId(@Payload() room_id: string) {
         const seats = await this.seatService.getSeatsByRoomId(room_id);
         return {
             message: 'Lấy danh sách ghế thành công',
@@ -42,8 +43,8 @@ export class SeatController {
         };
     }
 
-    @Get(':id')
-    async getSeatById(@Param('id') id: string) {
+    @MessagePattern({ cmd: SEAT_CMD.GET_BY_ID })
+    async getSeatById(@Payload() id: string) {
         const seat = await this.seatService.getSeatById(id);
         return {
             message: 'Lấy thông tin ghế thành công',
@@ -51,26 +52,26 @@ export class SeatController {
         };
     }
 
-    @Put(':id')
-    async updateSeat(@Param('id') id: string, @Body() updateSeatDto: UpdateSeatDto) {
-        const seat = await this.seatService.updateSeat(id, updateSeatDto);
+    @MessagePattern({ cmd: SEAT_CMD.UPDATE })
+    async updateSeat(@Payload() data: { id: string, updateSeatDto: UpdateSeatDto }) {
+        const seat = await this.seatService.updateSeat(data.id, data.updateSeatDto);
         return {
             message: 'Cập nhật ghế thành công',
             data: seat
         };
     }
 
-    @Patch("toggleSeatStatus/:id")
-    async toggleSeatStatus(@Param('id') id: string, @Body() body: { is_active: boolean }) {
-        const seat = await this.seatService.toggleSeatStatus(id, body.is_active);
+    @MessagePattern({ cmd: 'toggle_seat_status' })
+    async toggleSeatStatus(@Payload() body: { id: string, is_active: boolean }) {
+        const seat = await this.seatService.toggleSeatStatus(body.id, body.is_active);
         return {
             message: 'Cập nhật trạng thái ghế thành công',
             data: seat
         };
     }
 
-    @Delete(':id')
-    async deleteSeat(@Param('id') id: string) {
+    @MessagePattern({ cmd: SEAT_CMD.DELETE })
+    async deleteSeat(@Payload() id: string) {
         await this.seatService.deleteSeat(id);
         return {
             message: 'Xóa ghế thành công'

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
 import { Showtime } from './showtime.entities';
-import { CreateShowtimeDto, UpdateShowtimeDto, CreateBulkShowtimeDto } from './showtime.dto';
+import { CreateShowtimeDto, UpdateShowtimeDto, CreateBulkShowtimeDto } from "@libs/common";
 import { Movie } from '../movies/movie.entities';
 
 @Injectable()

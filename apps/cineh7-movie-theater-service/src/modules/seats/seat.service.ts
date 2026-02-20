@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Seat } from './seat.entities';
-import { CreateSeatDto, UpdateSeatDto } from './seat.dto';
+import { CreateSeatDto, UpdateSeatDto } from "@libs/common";
 
 @Injectable()
 export class SeatService {

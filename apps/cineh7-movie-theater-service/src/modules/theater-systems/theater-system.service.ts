@@ -1,9 +1,9 @@
-import { CreateTheaterSystemDto, UpdateTheaterSystemDto } from "./theater-system.dto";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { CloudinaryService } from "@libs/cloudinary";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { TheaterSystem } from "./theater-system.entities"
+import { CreateTheaterSystemDto, UpdateTheaterSystemDto } from "@libs/common";
 
 
 
