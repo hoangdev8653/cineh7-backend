@@ -1,12 +1,13 @@
-import { Controller, Get, Post, Body, Param, Delete, ParseUUIDPipe, Put } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { TicketService } from './ticket.service';
-import { CreateTicketDto, UpdateTicketDto } from './ticket.dto';
+import { CreateTicketDto, UpdateTicketDto, TICKET_CMD } from '@libs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
-@Controller('ticket')
+@Controller()
 export class TicketController {
     constructor(private readonly ticketService: TicketService) { }
 
-    @Get()
+    @MessagePattern({ cmd: TICKET_CMD.GET_ALL })
     async getAllTickets() {
         const tickets = await this.ticketService.getAllTickets();
         return {
@@ -15,8 +16,8 @@ export class TicketController {
         };
     }
 
-    @Get(':id')
-    async getTicketById(@Param('id', ParseUUIDPipe) id: string) {
+    @MessagePattern({ cmd: TICKET_CMD.GET_BY_ID })
+    async getTicketById(@Payload() id: string) {
         const ticket = await this.ticketService.getTicketById(id);
         return {
             message: 'Lấy thông tin vé thành công',
@@ -24,9 +25,8 @@ export class TicketController {
         };
     }
 
-    // Note: Tickets are usually created via Orders, but this endpoint is here for admin/testing
-    @Post()
-    async createTicket(@Body() createTicketDto: CreateTicketDto) {
+    @MessagePattern({ cmd: TICKET_CMD.CREATE })
+    async createTicket(@Payload() createTicketDto: CreateTicketDto) {
         const ticket = await this.ticketService.createTicket(createTicketDto);
         return {
             message: 'Tạo vé thành công',
@@ -34,20 +34,17 @@ export class TicketController {
         };
     }
 
-    @Put(':id')
-    async updateTicket(
-        @Param('id', ParseUUIDPipe) id: string,
-        @Body() updateTicketDto: UpdateTicketDto,
-    ) {
-        const ticket = await this.ticketService.updateTicket(id, updateTicketDto);
+    @MessagePattern({ cmd: TICKET_CMD.UPDATE })
+    async updateTicket(@Payload() data: { id: string, updateTicketDto: UpdateTicketDto }) {
+        const ticket = await this.ticketService.updateTicket(data.id, data.updateTicketDto);
         return {
             message: 'Cập nhật vé thành công',
             data: ticket,
         };
     }
 
-    @Delete(':id')
-    async deleteTicket(@Param('id', ParseUUIDPipe) id: string) {
+    @MessagePattern({ cmd: TICKET_CMD.DELETE })
+    async deleteTicket(@Payload() id: string) {
         await this.ticketService.deleteTicket(id);
         return {
             message: 'Xóa vé thành công',

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Ticket } from './ticket.entities';
-import { CreateTicketDto, UpdateTicketDto } from './ticket.dto';
+import { CreateTicketDto, UpdateTicketDto } from '@libs/common';
 
 @Injectable()
 export class TicketService {
