@@ -1,0 +1,106 @@
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: cineh7-postgres
+    ports:
+      - "5433:5432"
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${DB_USERNAME_AUTH:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD_AUTH:-huyhoang123}
+      - POSTGRES_DB=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME_AUTH:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cineh7-network
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: apps/cineh7-auth-service/Dockerfile
+    container_name: cineh7-auth-service
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
+    environment:
+      - DB_HOST_AUTH=postgres-db
+      - DB_PORT_AUTH=5432
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - cineh7-network
+
+  movie-theater-service:
+    build:
+      context: .
+      dockerfile: apps/cineh7-movie-theater-service/Dockerfile
+    container_name: cineh7-movie-theater-service
+    ports:
+      - "3002:3002"
+    env_file:
+      - .env
+    environment:
+      - DB_HOST_MOVIE_THEATER=postgres-db
+      - DB_PORT_MOVIE_THEATER=5432
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - cineh7-network
+
+  booking-service:
+    build:
+      context: .
+      dockerfile: apps/cineh7-booking-service/Dockerfile
+    container_name: cineh7-booking-service
+    ports:
+      - "3003:3003"
+    env_file:
+      - .env
+    environment:
+      - DB_HOST_BOOKING=postgres-db
+      - DB_PORT_BOOKING=5432
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - cineh7-network
+
+  gateway:
+    build:
+      context: .
+      dockerfile: apps/cineh7-gateway/Dockerfile
+    container_name: cineh7-gateway
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - AUTH_SERVICE_HOST=auth-service
+      - MOVIE_THEATER_SERVICE_HOST=movie-theater-service
+      - BOOKING_SERVICE_HOST=booking-service
+    depends_on:
+      auth-service:
+        condition: service_started
+      movie-theater-service:
+        condition: service_started
+      booking-service:
+        condition: service_started
+    networks:
+      - cineh7-network
+
+networks:
+  cineh7-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
