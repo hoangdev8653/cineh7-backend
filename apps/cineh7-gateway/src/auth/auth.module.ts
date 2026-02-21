@@ -1,17 +1,22 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GatewayAuthController } from './auth.controller';
 
 @Module({
     imports: [
-        ClientsModule.register([
+        ClientsModule.registerAsync([
             {
                 name: 'AUTH_SERVICE',
-                transport: Transport.TCP,
-                options: {
-                    host: 'localhost',
-                    port: 3001,
-                },
+                imports: [ConfigModule],
+                inject: [ConfigService],
+                useFactory: (configService: ConfigService) => ({
+                    transport: Transport.TCP,
+                    options: {
+                        host: configService.get<string>('AUTH_SERVICE_HOST', 'localhost'),
+                        port: configService.get<number>('AUTH_SERVICE_PORT', 3001),
+                    },
+                }),
             },
         ]),
     ],
