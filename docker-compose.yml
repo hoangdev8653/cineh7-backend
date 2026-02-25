@@ -25,7 +25,12 @@ services:
     build:
       context: .
       dockerfile: apps/cineh7-auth-service/Dockerfile
+      target: builder
     container_name: cineh7-auth-service
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run start:dev cineh7-auth-service
     ports:
       - "3001:3001"
     env_file:
@@ -33,6 +38,7 @@ services:
     environment:
       - DB_HOST_AUTH=postgres-db
       - DB_PORT_AUTH=5432
+      - JWT_SECRET=${JWT_SECRET:-jwt_secret}
     depends_on:
       postgres-db:
         condition: service_healthy
@@ -43,7 +49,12 @@ services:
     build:
       context: .
       dockerfile: apps/cineh7-movie-theater-service/Dockerfile
+      target: builder
     container_name: cineh7-movie-theater-service
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run start:dev cineh7-movie-theater-service
     ports:
       - "3002:3002"
     env_file:
@@ -51,6 +62,7 @@ services:
     environment:
       - DB_HOST_MOVIE_THEATER=postgres-db
       - DB_PORT_MOVIE_THEATER=5432
+      - JWT_SECRET=${JWT_SECRET:-jwt_secret}
     depends_on:
       postgres-db:
         condition: service_healthy
@@ -61,7 +73,12 @@ services:
     build:
       context: .
       dockerfile: apps/cineh7-booking-service/Dockerfile
+      target: builder
     container_name: cineh7-booking-service
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run start:dev cineh7-booking-service
     ports:
       - "3003:3003"
     env_file:
@@ -69,6 +86,9 @@ services:
     environment:
       - DB_HOST_BOOKING=postgres-db
       - DB_PORT_BOOKING=5432
+      - MOVIE_THEATER_SERVICE_HOST=movie-theater-service
+      - MOVIE_THEATER_SERVICE_PORT=3002
+      - JWT_SECRET=${JWT_SECRET:-jwt_secret}
     depends_on:
       postgres-db:
         condition: service_healthy
@@ -79,7 +99,12 @@ services:
     build:
       context: .
       dockerfile: apps/cineh7-gateway/Dockerfile
+      target: builder
     container_name: cineh7-gateway
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run start:dev cineh7-gateway
     ports:
       - "3000:3000"
     env_file:
@@ -88,6 +113,7 @@ services:
       - AUTH_SERVICE_HOST=auth-service
       - MOVIE_THEATER_SERVICE_HOST=movie-theater-service
       - BOOKING_SERVICE_HOST=booking-service
+      - JWT_SECRET=${JWT_SECRET:-jwt_secret}
     depends_on:
       auth-service:
         condition: service_started
