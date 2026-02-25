@@ -3,12 +3,11 @@ import { User } from "./auth.entities"
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import bcrypt from "bcrypt"
 import { MailService } from './configs/mail.config';
 import { generateToken } from './configs/generateToken.config';
 import { LoginDto, RegisterDto, ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto, LogoutDto, PaginationDto, UserRole } from '@libs/common';
-
-
 
 @Injectable()
 export class AuthService {
@@ -16,6 +15,7 @@ export class AuthService {
     @InjectRepository(User)
     private authRepository: Repository<User>,
     private jwtService: JwtService,
+    private configService: ConfigService,
     private mailService: MailService
   ) { }
 
@@ -29,7 +29,7 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const { access_token, refresh_token } = generateToken(this.jwtService, { email: user.email, sub: user.id });
+    const { access_token, refresh_token } = generateToken(this.jwtService, this.configService, { email: user.email, sub: user.id });
     await this.authRepository.update(user.id, { refresh_token });
 
     return {
@@ -82,7 +82,7 @@ export class AuthService {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      const { access_token, refresh_token } = generateToken(this.jwtService, { email: user.email, sub: user.id });
+      const { access_token, refresh_token } = generateToken(this.jwtService, this.configService, { email: user.email, sub: user.id });
       await this.authRepository.update(user.id, { refresh_token });
 
       return {
@@ -172,7 +172,7 @@ export class AuthService {
       }
     }
 
-    const { access_token, refresh_token } = generateToken(this.jwtService, { email: user.email, sub: user.id });
+    const { access_token, refresh_token } = generateToken(this.jwtService, this.configService, { email: user.email, sub: user.id });
     await this.authRepository.update(user.id, { refresh_token });
 
     return {
