@@ -1,6 +1,8 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, Inject, UseGuards } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { CreateOrderDto, UpdateOrderDto, ORDER_CMD } from "@libs/common";
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 
 @Controller('order')
 export class OrderController {
@@ -16,8 +18,13 @@ export class OrderController {
         return this.client.send({ cmd: ORDER_CMD.GET_BY_ID }, id);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Post()
-    createOrder(@Body() createOrderDto: CreateOrderDto) {
+    createOrder(
+        @Body() createOrderDto: CreateOrderDto,
+        @CurrentUser() user: any
+    ) {
+        createOrderDto.user_id = user.userId;
         return this.client.send({ cmd: ORDER_CMD.CREATE }, createOrderDto);
     }
 

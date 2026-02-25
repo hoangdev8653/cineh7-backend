@@ -1,19 +1,19 @@
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsUUID } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 import { PaymentStatus } from '../enums/booking.enum';
 
 export class CreateOrderDto {
-    @IsNotEmpty()
+    @IsOptional()
     @IsUUID()
-    user_id: string;
+    user_id?: string;
 
     @IsNotEmpty()
-    @IsNumber()
-    showtime_id: number;
+    @IsString()
+    showtime_id: string;
 
     @IsArray()
-    @IsNumber({}, { each: true })
+    @IsString({ each: true })
     @IsNotEmpty()
-    seat_ids: number[];
+    seat_ids: string[];
 }
 
 export class UpdateOrderDto {
@@ -27,8 +27,8 @@ export class UpdateOrderDto {
 
     @IsOptional()
     @IsArray()
-    @IsNumber({}, { each: true })
-    seat_ids?: number[];
+    @IsString({ each: true })
+    seat_ids?: string[];
 
     @IsOptional()
     @IsEnum(PaymentStatus)

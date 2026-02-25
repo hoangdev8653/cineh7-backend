@@ -12,11 +12,11 @@ export class TicketService {
     ) { }
 
     async getAllTickets(): Promise<Ticket[]> {
-        return await this.ticketRepository.find();
+        return await this.ticketRepository.find({ relations: ['order'] });
     }
 
     async getTicketById(id: string): Promise<Ticket> {
-        const ticket = await this.ticketRepository.findOne({ where: { id } });
+        const ticket = await this.ticketRepository.findOne({ where: { id }, relations: ['order'] });
         if (!ticket) {
             throw new NotFoundException(`Không tìm thấy vé với ID ${id}`);
         }

@@ -28,10 +28,10 @@ export class Ticket {
     order: Order;
 
     @Column()
-    showtime_id: number; // Ref: Movie Theater Service
+    showtime_id: string; // Ref: Movie Theater Service
 
     @Column()
-    seat_id: number; // Ref: Movie Theater Service
+    seat_id: string; // Ref: Movie Theater Service
 
     @Column()
     seat_name: string; // Snapshot: "A1", "B5" - For quick display

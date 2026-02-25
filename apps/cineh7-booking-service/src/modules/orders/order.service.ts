@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Order, PaymentStatus } from './order.entities';
-import { CreateOrderDto, UpdateOrderDto } from '@libs/common';
+import { CreateOrderDto, UpdateOrderDto, SHOWTIME_CMD } from '@libs/common';
 import { Ticket, TicketStatus } from '../tickets/ticket.entities';
+import { ClientProxy } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class OrderService {
@@ -11,6 +13,8 @@ export class OrderService {
         @InjectRepository(Order)
         private orderRepository: Repository<Order>,
         private dataSource: DataSource,
+        @Inject('MOVIE_THEATER_SERVICE')
+        private readonly movieTheaterClient: ClientProxy,
     ) { }
 
     async getAllOrder(): Promise<Order[]> {
@@ -29,58 +33,74 @@ export class OrderService {
     }
 
     async createOrder(createOrderDto: CreateOrderDto): Promise<any> {
+        console.log('Creating order for showtime:', createOrderDto.showtime_id);
+
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
-            // 1. Giả lập tính toán giá tiền (Sau này gọi Service khác)
-            const pricePerTicket = 50000;
+            const showtimeResponse = await firstValueFrom(
+                this.movieTheaterClient.send({ cmd: SHOWTIME_CMD.GET_BY_ID }, createOrderDto.showtime_id)
+            ).catch(err => {
+                console.error('Error calling Movie Theater Service:', err);
+                throw new BadRequestException('Không thể kết nối đến dịch vụ suất chiếu');
+            });
+
+            const showtime = showtimeResponse?.data;
+            if (!showtime) {
+                throw new NotFoundException(`Không tìm thấy thông tin suất chiếu với ID ${createOrderDto.showtime_id}`);
+            }
+
+            const pricePerTicket = showtime.price;
             const totalAmount = pricePerTicket * createOrderDto.seat_ids.length;
 
-            // 2. Tạo đối tượng Order (Chưa lưu DB ngay)
-            // Lưu ý: Order không lưu showtime_id, chỉ Tickets lưu
             const newOrder = new Order();
-            newOrder.user_id = createOrderDto.user_id;
+            newOrder.user_id = createOrderDto.user_id || '';
             newOrder.total_amount = totalAmount;
             newOrder.final_amount = totalAmount;
             newOrder.payment_status = PaymentStatus.PENDING;
-            newOrder.expire_at = new Date(Date.now() + 10 * 60 * 1000); // 10 phút hết hạn
+            newOrder.expire_at = new Date(Date.now() + 10 * 60 * 1000);
 
-            // 3. Lưu Order vào Transaction để lấy ID
             const savedOrder = await queryRunner.manager.save(Order, newOrder);
 
-            // 4. Tạo các đối tượng Ticket tương ứng
             const tickets: Ticket[] = [];
             for (const seatId of createOrderDto.seat_ids) {
                 const ticket = new Ticket();
-                ticket.order = savedOrder; // Link với Order vừa tạo
-                ticket.showtime_id = createOrderDto.showtime_id; // Lấy từ DTO
+                ticket.order = savedOrder;
+                ticket.showtime_id = createOrderDto.showtime_id;
                 ticket.seat_id = seatId;
-                ticket.seat_name = `Seat-${seatId}`; // Demo snapshot
+                ticket.seat_name = `Seat-${seatId}`;
                 ticket.price = pricePerTicket;
                 ticket.status = TicketStatus.HELD;
                 tickets.push(ticket);
             }
 
-            // 5. Lưu danh sách Tickets vào Transaction
             await queryRunner.manager.save(Ticket, tickets);
 
-            // 6. Commit (Chốt đơn)
             await queryRunner.commitTransaction();
 
-            // Trả về kết quả đầy đủ
-            return { ...savedOrder, tickets };
+            return {
+                ...savedOrder,
+                tickets: tickets.map(t => {
+                    const { order, ...ticketData } = t;
+                    return ticketData;
+                })
+            };
 
         } catch (err) {
-            // Có lỗi (vd: trùng ghế) -> Rollback
             await queryRunner.rollbackTransaction();
-            // Handle unique constraint violation (Double booking)
-            if (err.code === '23505') { // Postgres unique_violation code
-                throw new BadRequestException('Một hoặc nhiều ghế đã được đặt!');
+            console.error('Order Creation Error:', err);
+
+            if (err.code === '23505') {
+                return {
+                    status: 'error',
+                    message: 'Một hoặc nhiều ghế đã được đặt!'
+                };
             }
-            console.error(err);
-            throw new InternalServerErrorException('Lỗi khi tạo đơn hàng');
+
+            // Re-throw standardized error object for the filter
+            throw err;
         } finally {
             await queryRunner.release();
         }

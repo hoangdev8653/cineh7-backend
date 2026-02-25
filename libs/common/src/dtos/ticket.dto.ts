@@ -6,13 +6,13 @@ export class CreateTicketDto {
     @IsNotEmpty()
     order_id: string;
 
-    @IsNumber()
+    @IsString()
     @IsNotEmpty()
-    showtime_id: number;
+    showtime_id: string;
 
-    @IsNumber()
+    @IsString()
     @IsNotEmpty()
-    seat_id: number;
+    seat_id: string;
 
     @IsString()
     @IsNotEmpty()
@@ -29,12 +29,12 @@ export class UpdateTicketDto {
     order_id?: string;
 
     @IsOptional()
-    @IsNumber()
-    showtime_id?: number;
+    @IsString()
+    showtime_id?: string;
 
     @IsOptional()
-    @IsNumber()
-    seat_id?: number;
+    @IsString()
+    seat_id?: string;
 
     @IsOptional()
     @IsString()
