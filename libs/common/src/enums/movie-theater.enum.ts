@@ -34,6 +34,7 @@ export enum SHOWTIME_CMD {
     CREATE = 'create_showtime',
     GET_ALL = 'get_all_showtimes',
     GET_BY_ID = 'get_showtime_by_id',
+    GET_GROUPED = 'get_grouped_showtimes',
     UPDATE = 'update_showtime',
     DELETE = 'delete_showtime',
 }

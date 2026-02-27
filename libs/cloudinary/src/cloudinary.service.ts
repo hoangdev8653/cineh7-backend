@@ -29,4 +29,10 @@ export class CloudinaryService {
             },
         );
     }
+    async uploadFiles(
+        files: Express.Multer.File[],
+    ): Promise<(UploadApiResponse | UploadApiErrorResponse)[]> {
+        const uploadPromises = files.map(file => this.uploadFile(file));
+        return Promise.all(uploadPromises);
+    }
 }
