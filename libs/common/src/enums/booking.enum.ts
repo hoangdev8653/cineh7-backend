@@ -10,6 +10,7 @@ export enum TICKET_CMD {
     CREATE = 'create_ticket',
     GET_ALL = 'get_all_tickets',
     GET_BY_ID = 'get_ticket_by_id',
+    GET_BOOKED_BY_SHOWTIME = 'get_booked_tickets_by_showtime',
     UPDATE = 'update_ticket',
     DELETE = 'delete_ticket',
 }

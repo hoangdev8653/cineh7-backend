@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not, In } from 'typeorm';
 import { Ticket } from './ticket.entities';
-import { CreateTicketDto, UpdateTicketDto } from '@libs/common';
+import { CreateTicketDto, UpdateTicketDto, TicketStatus } from '@libs/common';
 
 @Injectable()
 export class TicketService {
@@ -38,5 +38,15 @@ export class TicketService {
     async deleteTicket(id: string): Promise<void> {
         const ticket = await this.getTicketById(id);
         await this.ticketRepository.remove(ticket);
+    }
+
+    async getBookedTicketsByShowtime(showtimeId: string): Promise<Ticket[]> {
+        return await this.ticketRepository.find({
+            where: {
+                showtime_id: showtimeId,
+                status: Not(In([TicketStatus.CANCELLED]))
+            },
+            select: ['seat_id', 'status']
+        });
     }
 }

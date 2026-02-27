@@ -50,4 +50,13 @@ export class TicketController {
             message: 'Xóa vé thành công',
         };
     }
+
+    @MessagePattern({ cmd: TICKET_CMD.GET_BOOKED_BY_SHOWTIME })
+    async getBookedTicketsByShowtime(@Payload() showtimeId: string) {
+        const tickets = await this.ticketService.getBookedTicketsByShowtime(showtimeId);
+        return {
+            message: 'Lấy danh sách vé đã đặt thành công',
+            data: tickets
+        };
+    }
 }
