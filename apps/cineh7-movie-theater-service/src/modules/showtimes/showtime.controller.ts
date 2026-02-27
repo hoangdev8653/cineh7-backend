@@ -34,6 +34,15 @@ export class ShowtimeController {
         }
     }
 
+    @MessagePattern({ cmd: SHOWTIME_CMD.GET_GROUPED })
+    async getGroupedShowtimes(@Payload() data: { movie_id?: string, theater_id?: string }) {
+        const groupedData = await this.showtimeService.getGroupedShowtimes(data.movie_id, data.theater_id);
+        return {
+            message: 'Lấy danh sách lịch chiếu theo nhóm thành công',
+            data: groupedData,
+        }
+    }
+
     @MessagePattern({ cmd: SHOWTIME_CMD.GET_BY_ID })
     async getShowtimeById(@Payload() id: string) {
         const data = await this.showtimeService.getShowtimeById(id);

@@ -76,22 +76,109 @@ export class ShowtimeService {
                     message: error.message
                 });
             }
-
-            // Prep next loop: end_time + cleanup
             currentStartTime = new Date(currentEndTime.getTime() + (cleanup_time || 15) * 60000);
         }
-
         return { success, errors };
     }
 
     async getAllShowtimes(): Promise<Showtime[]> {
-        return await this.showtimeRepository.find({ relations: ['movie', 'room'] });
+        return await this.showtimeRepository.find({
+            relations: ['movie', 'room', 'room.theater'],
+            select: {
+                id: true,
+                movie_id: true,
+                room_id: true,
+                start_time: true,
+                end_time: true,
+                status: true,
+                price: true,
+                created_at: true,
+                movie: {
+                    id: true,
+                    title: true,
+                    duration: true,
+                    release_date: true,
+                },
+                room: {
+                    id: true,
+                    name: true,
+                    type: true,
+                    theater_id: true,
+                    theater: {
+                        id: true,
+                        name: true,
+                        address: true,
+                        location: true,
+                        system_id: true
+                    }
+                }
+            }
+        });
+    }
+
+    async getGroupedShowtimes(movieId?: string, theaterId?: string): Promise<Record<string, Showtime[]>> {
+        const query = this.showtimeRepository.createQueryBuilder('showtime')
+            .leftJoinAndSelect('showtime.movie', 'movie')
+            .leftJoinAndSelect('showtime.room', 'room')
+            .leftJoinAndSelect('room.theater', 'theater')
+            .orderBy('showtime.start_time', 'ASC');
+
+        if (movieId) {
+            query.andWhere('showtime.movie_id = :movieId', { movieId });
+        }
+
+        if (theaterId) {
+            query.andWhere('theater.id = :theaterId', { theaterId });
+        }
+
+        const showtimes = await query.getMany();
+
+        const grouped: Record<string, Showtime[]> = {};
+
+        showtimes.forEach(showtime => {
+            const date = new Date(showtime.start_time).toLocaleDateString('en-CA'); // YYYY-MM-DD
+            if (!grouped[date]) {
+                grouped[date] = [];
+            }
+            grouped[date].push(showtime);
+        });
+
+        return grouped;
     }
 
     async getShowtimeById(id: string): Promise<Showtime> {
         const showtime = await this.showtimeRepository.findOne({
             where: { id },
-            relations: ['movie', 'room'],
+            relations: ['movie', 'room', 'room.theater'],
+            select: {
+                id: true,
+                movie_id: true,
+                room_id: true,
+                start_time: true,
+                end_time: true,
+                status: true,
+                price: true,
+                created_at: true,
+                movie: {
+                    id: true,
+                    title: true,
+                    duration: true,
+                    release_date: true,
+                },
+                room: {
+                    id: true,
+                    name: true,
+                    type: true,
+                    theater_id: true,
+                    theater: {
+                        id: true,
+                        name: true,
+                        address: true,
+                        location: true,
+                        system_id: true
+                    }
+                }
+            }
         });
         if (!showtime) {
             throw new NotFoundException(`Không tìm thấy lịch chiếu với ID ${id}`);
