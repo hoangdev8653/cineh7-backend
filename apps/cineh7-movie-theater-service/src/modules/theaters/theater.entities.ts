@@ -22,6 +22,9 @@ export class Theater {
     @Column({ comment: 'Tỉnh/Thành phố' })
     location: string;
 
+    @Column({ nullable: true })
+    image_url: string;
+
     @CreateDateColumn({ name: 'created_at' })
     created_at: Date;
 }

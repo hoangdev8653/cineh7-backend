@@ -16,6 +16,10 @@ export class CreateTheaterDto {
     @IsNotEmpty()
     @IsString()
     location: string;
+
+    @IsNotEmpty()
+    @IsString()
+    image_url: string;
 }
 
 export class UpdateTheaterDto {
@@ -34,4 +38,8 @@ export class UpdateTheaterDto {
     @IsOptional()
     @IsString()
     location?: string;
+
+    @IsOptional()
+    @IsString()
+    image_url?: string;
 }

@@ -1,13 +1,24 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, Inject, UseInterceptors, UploadedFiles, Patch } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { CreateTheaterDto, UpdateTheaterDto, THEATER_CMD } from "@libs/common";
+import { CloudinaryService } from '@libs/cloudinary';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+
 
 @Controller('theater')
 export class TheaterController {
-    constructor(@Inject('MOVIE_THEATER_SERVICE') private readonly client: ClientProxy) { }
+    constructor(@Inject('MOVIE_THEATER_SERVICE') private readonly client: ClientProxy,
+        private readonly cloudinaryService: CloudinaryService) { }
 
     @Post()
-    createTheater(@Body() createTheaterDto: CreateTheaterDto) {
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'image_url', maxCount: 1 },
+    ]))
+    async createTheater(@Body() createTheaterDto: CreateTheaterDto, @UploadedFiles() image_url: { image_url: Express.Multer.File[] }) {
+        if (image_url.image_url && image_url.image_url.length > 0) {
+            const url = await this.cloudinaryService.uploadFile(image_url.image_url[0]);
+            createTheaterDto.image_url = url.url;
+        }
         return this.client.send({ cmd: THEATER_CMD.CREATE }, createTheaterDto);
     }
 
@@ -21,8 +32,15 @@ export class TheaterController {
         return this.client.send({ cmd: THEATER_CMD.GET_BY_ID }, id);
     }
 
-    @Put(':id')
-    updateTheaterById(@Param('id') id: string, @Body() updateTheaterDto: UpdateTheaterDto) {
+    @Patch(':id')
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'image_url', maxCount: 1 },
+    ]))
+    async updateTheaterById(@Param('id') id: string, @Body() updateTheaterDto: UpdateTheaterDto, @UploadedFiles() image_url: { image_url: Express.Multer.File[] }) {
+        if (image_url.image_url && image_url.image_url.length > 0) {
+            const url = await this.cloudinaryService.uploadFile(image_url.image_url[0]);
+            updateTheaterDto.image_url = url.url;
+        }
         return this.client.send({ cmd: THEATER_CMD.UPDATE }, { id, updateTheaterDto });
     }
 
