@@ -20,6 +20,9 @@ export class Movie {
     @Column({ nullable: true })
     video_url: string;
 
+    @Column({ nullable: true })
+    image_url: string;
+
     @Column({ type: 'json' })
     metadata: any;
 

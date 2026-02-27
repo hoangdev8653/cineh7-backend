@@ -5,25 +5,9 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller()
 export class MovieController {
-  constructor(private readonly movieService: MovieService) {}
+  constructor(private readonly movieService: MovieService) { }
 
-  @MessagePattern({ cmd: MOVIE_CMD.CREATE })
-  async createMovie(
-    @Payload()
-    data: {
-      createMovieDto: CreateMovieDto;
-      file: Express.Multer.File;
-    },
-  ) {
-    const movie = await this.movieService.createMovie(
-      data.createMovieDto,
-      data.file,
-    );
-    return {
-      message: 'Tạo phim mới thành công',
-      data: movie,
-    };
-  }
+
 
   @MessagePattern({ cmd: MOVIE_CMD.GET_ALL })
   async getAllMovies() {
@@ -43,10 +27,20 @@ export class MovieController {
     };
   }
 
+  @MessagePattern({ cmd: MOVIE_CMD.CREATE })
+  async createMovie(@Payload() createMovieDto: CreateMovieDto) {
+    const movie = await this.movieService.createMovie(createMovieDto);
+    return {
+      message: 'Tạo phim mới thành công',
+      data: movie,
+    };
+  }
+
   @MessagePattern({ cmd: MOVIE_CMD.UPDATE })
   async updateMovieById(
     @Payload() data: { id: string; updateMovieDto: UpdateMovieDto },
   ) {
+    console.log(`[Service] Received UPDATE_MOVIE request for ID: ${data.id}`);
     const movie = await this.movieService.updateMovieById(
       data.id,
       data.updateMovieDto,

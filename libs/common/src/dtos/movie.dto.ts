@@ -24,6 +24,10 @@ export class CreateMovieDto {
     video_url?: string;
 
     @IsOptional()
+    @IsString()
+    image_url?: string;
+
+    @IsOptional()
     metadata?: any;
 }
 
@@ -48,6 +52,10 @@ export class UpdateMovieDto {
     @IsOptional()
     @IsString()
     video_url?: string;
+
+    @IsOptional()
+    @IsString()
+    image_url?: string;
 
     @IsOptional()
     metadata?: any;
