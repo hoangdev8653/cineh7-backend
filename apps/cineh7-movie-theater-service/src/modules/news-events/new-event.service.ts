@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NewsEvent, NewsEventType } from './new-event.entities';
-import { CreateNewsEventDto, UpdateNewsEventDto } from "@libs/common";
+import { NewsEvent } from './new-event.entities';
+import { CreateNewsEventDto, UpdateNewsEventDto, NewsEventType } from "@libs/common";
 
 @Injectable()
 export class NewsEventsService {
@@ -16,13 +16,14 @@ export class NewsEventsService {
         const initialSlug = slug || this.generateNewEventSlug(title);
         const uniqueSlug = await this.ensureUniqueSlug(initialSlug);
 
-        const newsEvent = this.newsEventRepository.create({
+        const newsEvent = new NewsEvent();
+        Object.assign(newsEvent, {
             ...rest,
             title,
             slug: uniqueSlug,
         });
 
-        return this.newsEventRepository.save(newsEvent);
+        return await this.newsEventRepository.save(newsEvent);
     }
 
     async getAllNewsEvents() {
@@ -69,8 +70,18 @@ export class NewsEventsService {
     }
 
     private generateNewEventSlug(title: string): string {
-        return title
-            .toLowerCase()
+        let slug = title.toLowerCase();
+
+        // Chuyển ký tự tiếng Việt có dấu sang không dấu
+        slug = slug.replace(/[áàảãạăắằẳẵặâấầẩẫậ]/g, 'a');
+        slug = slug.replace(/[éèẻẽẹêếềểễệ]/g, 'e');
+        slug = slug.replace(/[iíìỉĩị]/g, 'i');
+        slug = slug.replace(/[óòỏõọôốồổỗộơớờởỡợ]/g, 'o');
+        slug = slug.replace(/[úùủũụưứừửữự]/g, 'u');
+        slug = slug.replace(/[ýỳỷỹỵ]/g, 'y');
+        slug = slug.replace(/đ/g, 'd');
+
+        return slug
             .trim()
             .replace(/[^\w\s-]/g, '')
             .replace(/[\s_-]+/g, '-')

@@ -22,6 +22,7 @@ export class CreateNewsEventDto {
     @IsNotEmpty()
     content: any;
 
+
     @IsBoolean()
     @IsOptional()
     is_active?: boolean;

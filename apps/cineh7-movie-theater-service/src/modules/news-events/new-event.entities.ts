@@ -1,10 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
-
-export enum NewsEventType {
-    NEWS = 'news',
-    EVENT = 'event',
-    POLICY = 'policy',
-}
+import { NewsEventType } from '@libs/common';
 
 @Entity('news_events')
 export class NewsEvent {

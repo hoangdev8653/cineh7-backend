@@ -45,10 +45,9 @@ export class NewsEventsController {
 
     @MessagePattern({ cmd: NEWS_EVENT_CMD.DELETE })
     async deleteNewevent(@Payload() id: string) {
-        const newEvent = await this.newsEventsService.deleteNewevent(id);
+        await this.newsEventsService.deleteNewevent(id);
         return {
-            message: 'success',
-            data: newEvent
+            message: 'Xóa tin tức/sự kiện thành công',
         }
     }
 }
